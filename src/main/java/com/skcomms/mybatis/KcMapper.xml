@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.skcomms.mybatis.KcMapper">
+    <!--
+    	포털별 코클 로딩 타임 이너
+    
+     -->
+	<insert id="insertKc" parameterType="KcModel">
+	    INSERT INTO TB_PORTAL_KC
+	    (	CHECK_DATE
+	    ,	PORTAL_CODE
+	    ,	PORTAL_NAME
+	    ,	LOAD_TIME
+	    )
+	    values
+	    (	#{checkDate}
+	    ,	#{portalCode}
+	    ,	#{portalName}
+	    ,	#{loadTime}
+	    )
+	</insert>
+	<!-- 
+		기간별 Summary 조회
+	 -->
+	<select id="getKcByDate" parameterType="KcModel" resultType="KcModel">
+		SELECT
+				CHECK_DATE	as checkDate
+		,		PORTAL_CODE	as portalCode
+		,		PORTAL_NAME	as portalName
+		,		LOAD_TIME	as loadTime
+			
+		FROM	TB_PORTAL_KC
+		WHERE	CHECK_DATE BETWEEN #{sDate} AND #{eDate}
+		AND		PORTAL_CODE = #{portalCode}
+		ORDER BY CHECK_DATE DESC
+	</select>
+		
+
+</mapper>

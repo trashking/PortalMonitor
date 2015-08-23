@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.skcomms.mybatis.PortalMapper">
+	
+	<!-- 
+		포털별 webPageTest 측정값 유무 확인
+	 -->
+	<select id="getWebPageTestCnt"  parameterType="PortalModel" resultType="Integer">
+		
+		SELECT	
+				COUNT(CHECK_DATE)
+		FROM	TB_PORTAL_STATS
+		WHERE	CHECK_DATE = #{checkDate}
+		AND		PORTAL_CODE = #{portalCode}
+		
+	</select>
+	
+	<!--
+		포털별 webPageTest 측정값 Insert
+	 -->
+	<!-- 기존 테스트 결과도 입력 시점으로 들어가서 임시방편 : checkDate -->
+	<insert id="insertWebPageTest" parameterType="PortalModel">
+		
+		INSERT INTO TB_PORTAL_STATS
+		(	CHECK_DATE
+		,	CHECK_URL
+		,	PORTAL_CODE
+		,	PORTAL_NAME
+		,	STAT_NO
+		,	STAT_RESOURCE
+		,	STAT_TYPE
+		,	STAT_OFFSET
+		,	STAT_DNS
+		,	STAT_CONN
+		,	STAT_SSL
+		,	STAT_TTFB
+		,	STAT_CONTENT
+		,	STAT_BYTE
+		,	STAT_CODE
+		,	STAT_IP
+		,	STAT_LOCATION
+		,	STAT_TYPE_CODE
+		,	STAT_EVENT_TYPE
+		,	CHECK_BASE_LOCATION
+		,	CHECK_BASE_BROWSER
+		,	CHECK_BASE_CONNECTION
+		,	CREATE_ID
+		,	CREATE_DATETIME
+		)
+		values
+		(	#{checkDate}
+		,	#{checkUrl}
+		,	#{portalCode}
+		,	#{portalName}
+		,	#{statNo}
+		,	#{statResource}
+		,	#{statType}
+		,	#{statOffset}
+		,	#{statDNS}
+		,	#{statConn}
+		,	#{statSSL}
+		,	#{statTTFB}
+		,	#{statContent}
+		,	#{statByte}
+		,	#{statCode}
+		,	#{statIP}
+		,	#{statLocation}
+		,	#{statTypeCode}
+		,	#{statEventType}
+		,	#{checkBaseLocation}
+		,	#{checkBaseBrowser}
+		,	#{checkBaseConnection}
+		,	'SYSTEM'
+		,	to_char(SYSDATE, 'yyyyMMddhh24miss')
+		)
+		
+	</insert>
+	
+	<!-- 
+		포털별 webPageTest 측정값 Delete
+	-->
+	<delete id="deleteWebPageTest" parameterType="PortalModel">
+		
+		DELETE 
+			FROM TB_PORTAL_STATS
+		WHERE	CHECK_DATE = #{checkDate}
+		AND		PORTAL_CODE = #{portalCode}
+		
+	</delete>
+	
+	<!-- 
+		포털별 webPageTest 측정값 일자별 목록 조회 
+	 -->
+	<select id="getWebPageTestByDateSeq" parameterType="String" resultType="PortalModel">
+		
+		SELECT
+				CHECK_DATE as checkDate
+		FROM	TB_PORTAL_STATS
+		WHERE	PORTAL_CODE = #{0}
+		GROUP BY CHECK_DATE
+		ORDER BY CHECK_DATE DESC
+	
+	</select>
+	
+	<!--
+		포털별 webPageTest 측정값 불러오기
+	 -->
+	<select id="getWebPageTest" parameterType="PortalModel" resultType="PortalModel">
+		SELECT
+				CHECK_DATE				as checkDate
+		,		CHECK_URL				as checkUrl
+		,		PORTAL_CODE				as portalCode
+		,		PORTAL_NAME				as portalName
+		,		STAT_NO					as statNo
+		,		STAT_RESOURCE			as statResource
+		,		STAT_TYPE				as statType
+		,		STAT_OFFSET				as statOffset
+		,		STAT_DNS				as statDNS
+		,		STAT_CONN				as statConn
+		,		STAT_SSL				as PortalModelSSL
+		,		STAT_TTFB				as statTTFB
+		,		STAT_CONTENT			as statContent
+		,		STAT_BYTE				as statByte
+		,		STAT_CODE				as statCode
+		,		STAT_IP					as statIP
+		,		STAT_LOCATION			as statLocation
+		,		CREATE_ID				as createId
+		,		CREATE_DATETIME			as createDatetime
+		,		STAT_TYPE_CODE			as statTypeCode
+		,		STAT_EVENT_TYPE			as statEventType
+		,		CHECK_BASE_LOCATION		as checkBaseLocation
+		,		CHECK_BASE_BROWSER		as checkBaseBrowser
+		,		CHECK_BASE_CONNECTION	as checkBaseConnection
+		,		CASE
+					WHEN LENGTH(STAT_RESOURCE) > 44 THEN
+						SUBSTR(STAT_RESOURCE, 1, 21) || '...' || SUBSTR(STAT_RESOURCE, -20)
+					ELSE
+						STAT_RESOURCE
+				END as modifiedStatResource
+		FROM	TB_PORTAL_STATS
+		WHERE	CHECK_DATE	= #{checkDate}
+		AND		PORTAL_CODE = #{portalCode}
+		
+	</select>
+	
+	<!-- 
+		포털-일자-회차 단위별 WebPageTest 측정값 Summary 조회
+	 -->
+	<select id="getWebPageTestSummary" parameterType="PortalModel" resultType="PortalModel">
+
+		SELECT
+				tt_dummy.loadEventType
+		,		tt_dummy.CHECK_DATE		as checkDate
+		,		tt_check_data.CHECK_URL	as checkUrl
+		,		tt_check_data.PORTAL_NAME as portalName
+		,		tt_check_data.PORTAL_CODE as portalCode
+		,		tt_check_data.CHECK_BASE_LOCATION as checkBaseLocation
+		,		tt_check_data.CHECK_BASE_BROWSER as checkBaseBrowser
+		,		tt_check_data.CHECK_BASE_CONNECTION	as checkBaseConnection
+ 		,		nvl(tt_check_data.statByteImage, 0) as statByteImage
+		,		nvl(tt_check_data.statByteJs, 0) as statByteJs 
+		,		nvl(tt_check_data.statByteHtml, 0) as statByteHtml 
+		,		nvl(tt_check_data.statByteCss, 0) as statByteCss 
+		,		nvl(tt_check_data.statByteFlash, 0) as statByteFlash
+		,		nvl(tt_check_data.statByteOther, 0) as statByteOther 
+		,		nvl(tt_check_data.statByteFont, 0) as statByteFont 
+		,		nvl(tt_check_data.statByteText, 0) as statByteText
+		,		nvl(tt_check_data.statImageRequest, 0) as statImageRequest
+		,		nvl(tt_check_data.statJsRequest, 0) as statJsRequest
+		,		nvl(tt_check_data.statHtmlRequest, 0) as statHtmlRequest
+		,		nvl(tt_check_data.statCssRequest, 0) as statCssRequest
+		,		nvl(tt_check_data.statFlashRequest, 0) as statFlashRequest
+		,		nvl(tt_check_data.statOtherRequest, 0) as statOtherRequest
+		,		nvl(tt_check_data.statFontRequest, 0) as statFontRequest
+		,		nvl(tt_check_data.statTextRequest, 0) as statTextRequest
+		FROM
+			(
+				SELECT
+						'1' as loadEventType
+				,		CHECK_DATE
+				,		CHECK_URL
+				,		PORTAL_NAME
+				,		PORTAL_CODE
+				,		CHECK_BASE_LOCATION
+				,		CHECK_BASE_BROWSER
+				,		CHECK_BASE_CONNECTION
+				,		SUM( CASE STAT_TYPE_CODE WHEN '1' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteImage
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '1' THEN STAT_BYTE
+								END
+						) as statImageRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '2' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteJs
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '2' THEN STAT_BYTE
+								END
+						) as statJsRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '3' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteHtml
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '3' THEN STAT_BYTE
+								END
+						) as statHtmlRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '4' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteCss
+				,		count( CASE STAT_TYPE_CODE WHEN '4' THEN STAT_BYTE
+								END
+						) as statCssRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '5' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteFlash
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '5' THEN STAT_BYTE
+								END
+						) as statFlashRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '6' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteOther
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '6' THEN STAT_BYTE
+								END
+						) as statOtherRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '7' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteFont
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '7' THEN STAT_BYTE
+								END
+						) as statFontRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '8' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteText
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '8' THEN STAT_BYTE
+								END
+						) as statTextRequest
+				FROM	TB_PORTAL_STATS
+				WHERE	CHECK_DATE = #{checkDate}
+				AND		PORTAL_CODE = #{portalCode}
+				AND		STAT_EVENT_TYPE IN ( '1', '2', '3', '4' )
+				GROUP BY CHECK_DATE, CHECK_URL, PORTAL_NAME, PORTAL_CODE, CHECK_BASE_LOCATION, CHECK_BASE_BROWSER, CHECK_BASE_CONNECTION
+				
+				UNION ALL
+				
+				SELECT
+						'2' as loadEventType
+				,		CHECK_DATE
+				,		CHECK_URL
+				,		PORTAL_NAME
+				,		PORTAL_CODE
+				,		CHECK_BASE_LOCATION
+				,		CHECK_BASE_BROWSER
+				,		CHECK_BASE_CONNECTION
+				,		SUM( CASE STAT_TYPE_CODE WHEN '1' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteImage
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '1' THEN STAT_BYTE
+								END
+						) as statImageRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '2' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteJs
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '2' THEN STAT_BYTE
+								END
+						) as statJsRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '3' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteHtml
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '3' THEN STAT_BYTE
+								END
+						) as statHtmlRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '4' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteCss
+				,		count( CASE STAT_TYPE_CODE WHEN '4' THEN STAT_BYTE
+								END
+						) as statCssRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '5' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteFlash
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '5' THEN STAT_BYTE
+								END
+						) as statFlashRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '6' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteOther
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '6' THEN STAT_BYTE
+								END
+						) as statOtherRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '7' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteFont
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '7' THEN STAT_BYTE
+								END
+						) as statFontRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '8' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteText
+				,		COUNT( CASE STAT_TYPE_CODE WHEN '8' THEN STAT_BYTE
+								END
+						) as statTextRequest
+				FROM	TB_PORTAL_STATS
+				WHERE	CHECK_DATE = #{checkDate}
+				AND		PORTAL_CODE = #{portalCode}
+				AND		STAT_EVENT_TYPE IN ( '5', '6' )
+				GROUP BY CHECK_DATE, CHECK_URL, PORTAL_NAME, PORTAL_CODE, CHECK_BASE_LOCATION, CHECK_BASE_BROWSER, CHECK_BASE_CONNECTION
+			) tt_check_data
+		,	(
+				SELECT CHECK_DATE
+				,	'1' as loadEventType
+				FROM	TB_PORTAL_STATS
+				WHERE	CHECK_DATE = #{checkDate}
+				AND		PORTAL_CODE = #{portalCode}
+				GROUP BY CHECK_DATE
+
+				UNION ALL
+
+				SELECT CHECK_DATE
+				,	'2' AS loadEventType
+				FROM	TB_PORTAL_STATS
+				WHERE	CHECK_DATE = #{checkDate}
+				AND		PORTAL_CODE = #{portalCode}
+				GROUP BY CHECK_DATE
+			) tt_dummy
+		WHERE	tt_dummy.CHECK_DATE = tt_check_data.CHECK_DATE(+)
+		AND		tt_dummy.loadEventType = tt_check_data.loadEventType(+)
+		ORDER BY tt_dummy.loadEventType
+
+	</select>
+	
+	<!-- 
+		기간별 Summary 조회
+	 -->
+	<select id="getSummaryByDate" parameterType="PortalModel" resultType="PortalModel">
+		
+		SELECT
+				tt_dummy.loadEventType
+		,		tt_dummy.CHECK_DATE as checkDate
+		,		nvl(tt_check_data.statByteImage, 0) as statByteImage
+		,		nvl(tt_check_data.statImageRequest, 0) as statImageRequest
+		,		nvl(tt_check_data.statByteJs, 0) as statByteJs
+		,		nvl(tt_check_data.statJsRequest, 0) as statJsRequest
+		,		nvl(tt_check_data.statByteHtml, 0) as statByteHtml
+		,		nvl(tt_check_data.statHtmlRequest, 0) as statHtmlRequest
+		,		nvl(tt_check_data.statByteCss, 0) as statByteCss
+		,		nvl(tt_check_data.statCssRequest, 0) as statCssRequest
+		,		nvl(tt_check_data.statByteFlash, 0) as statByteFlash
+		,		nvl(tt_check_data.statFlashRequest, 0) as statFlashRequest
+		,		nvl(tt_check_data.statByteOther, 0) as statByteOther
+		,		nvl(tt_check_data.statOtherRequest, 0) as statOtherRequest
+		,		nvl(tt_check_data.statByteFont, 0) as statByteFont
+		,		nvl(tt_check_data.statFontRequest, 0) as statFontRequest
+		,		nvl(tt_check_data.statByteText, 0) as statByteText
+		,		nvl(tt_check_data.statTextRequest, 0) as statTextRequest
+		FROM
+			(
+				SELECT
+						'1' as loadEventType
+				,		CHECK_DATE
+				,		SUM( CASE STAT_TYPE_CODE WHEN '1' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteImage
+				,		SUM( CASE STAT_TYPE_CODE WHEN '1' THEN 1
+								ELSE 0
+								END
+						) as statImageRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '2' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteJs
+				,		SUM( CASE STAT_TYPE_CODE WHEN '2' THEN 1
+								ELSE 0
+								END
+						) as statJsRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '3' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteHtml
+				,		SUM( CASE STAT_TYPE_CODE WHEN '3' THEN 1
+								ELSE 0
+								END
+						) as statHtmlRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '4' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteCss
+				,		SUM( CASE STAT_TYPE_CODE WHEN '4' THEN 1
+								ELSE 0
+								END
+						) as statCssRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '5' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteFlash
+				,		SUM( CASE STAT_TYPE_CODE WHEN '5' THEN 1
+								ELSE 0
+								END
+						) as statFlashRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '6' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteOther
+				,		SUM( CASE STAT_TYPE_CODE WHEN '6' THEN 1
+								ELSE 0
+								END
+						) as statOtherRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '7' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteFont
+				,		SUM( CASE STAT_TYPE_CODE WHEN '7' THEN 1
+								ELSE 0
+								END
+						) as statFontRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '8' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteText
+				,		SUM( CASE STAT_TYPE_CODE WHEN '8' THEN 1
+								ELSE 0
+								END
+						) as statTextRequest
+				FROM	TB_PORTAL_STATS
+				WHERE	CHECK_DATE BETWEEN #{sDate} AND #{eDate}
+				AND		PORTAL_CODE = #{portalCode}
+				AND		STAT_EVENT_TYPE IN ( '1', '2', '3', '4' )
+				GROUP BY CHECK_DATE
+				
+				UNION ALL
+				
+				SELECT
+						'2' as loadEventType
+				,		CHECK_DATE
+				,		SUM( CASE STAT_TYPE_CODE WHEN '1' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteImage
+				,		SUM( CASE STAT_TYPE_CODE WHEN '1' THEN 1
+								ELSE 0
+								END
+						) as statImageRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '2' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteJs
+				,		SUM( CASE STAT_TYPE_CODE WHEN '2' THEN 1
+								ELSE 0
+								END
+						) as statJsRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '3' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteHtml
+				,		SUM( CASE STAT_TYPE_CODE WHEN '3' THEN 1
+								ELSE 0
+								END
+						) as statHtmlRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '4' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteCss
+				,		SUM( CASE STAT_TYPE_CODE WHEN '4' THEN 1
+								ELSE 0
+								END
+						) as statCssRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '5' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteFlash
+				,		SUM( CASE STAT_TYPE_CODE WHEN '5' THEN 1
+								ELSE 0
+								END
+						) as statFlashRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '6' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteOther
+				,		SUM( CASE STAT_TYPE_CODE WHEN '6' THEN 1
+								ELSE 0
+								END
+						) as statOtherRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '7' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteFont
+				,		SUM( CASE STAT_TYPE_CODE WHEN '7' THEN 1
+								ELSE 0
+								END
+						) as statFontRequest
+				,		SUM( CASE STAT_TYPE_CODE WHEN '8' THEN STAT_BYTE
+								ELSE 0
+								END
+						) as statByteText
+				,		SUM( CASE STAT_TYPE_CODE WHEN '8' THEN 1
+								ELSE 0
+								END
+						) as statTextRequest
+				FROM	TB_PORTAL_STATS
+				WHERE	CHECK_DATE BETWEEN #{sDate} AND #{eDate}
+				AND		PORTAL_CODE = #{portalCode}
+				AND		STAT_EVENT_TYPE IN ( '5', '6' )
+				GROUP BY CHECK_DATE
+			) tt_check_data
+		,	(
+				SELECT CHECK_DATE
+				,	'1' as loadEventType
+				FROM TB_PORTAL_STATS
+				WHERE CHECK_DATE BETWEEN #{sDate} AND #{eDate}
+				AND   PORTAL_CODE = #{portalCode}
+				GROUP BY CHECK_DATE
+
+				UNION ALL
+
+				SELECT CHECK_DATE
+				,	'2' AS loadEventType
+				FROM TB_PORTAL_STATS
+				WHERE CHECK_DATE BETWEEN #{sDate} AND #{eDate}
+				AND   PORTAL_CODE = #{portalCode}
+				GROUP BY CHECK_DATE
+			) tt_dummy
+		WHERE	tt_dummy.CHECK_DATE = tt_check_data.CHECK_DATE(+)
+		AND		tt_dummy.loadEventType = tt_check_data.loadEventType(+)
+		ORDER BY tt_dummy.CHECK_DATE DESC, tt_dummy.loadEventType
+		
+	</select>
+	
+	<!-- 
+		Request Summary 조회
+	 -->
+	<select id="getRequestSummary" parameterType="PortalModel" resultType="PortalModel">
+	
+	</select>
+	
+	<!-- 
+		Kbytes Summary 조회
+	 -->
+	<select id="getKbytesSummary" parameterType="PortalModel" resultType="PortalModel">
+	
+	</select>
+	
+	<!-- 
+		js Request Summary 조회
+	 -->
+	<select id="getJsRequestSummary" parameterType="PortalModel" resultType="PortalModel">
+	
+	</select>
+
+</mapper>
