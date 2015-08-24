@@ -24,7 +24,11 @@ public interface PortalService {
 	 * 포털별 webPageTest 측정값 Insert
 	 */
 	public void insertWebPageTest(PortalModel portalmodel);
-	
+	public void insertAutoNate(PortalModel portalmodel);
+	public void insertAutoDaum(PortalModel portalmodel);
+	public void insertAutoNaver(PortalModel portalmodel);
+	public List<PortalModel> getAuto(PortalModel portalmodel);
+		
 	/*
 	 * 포털별 webPageTest 측정값 Delete
 	 */
