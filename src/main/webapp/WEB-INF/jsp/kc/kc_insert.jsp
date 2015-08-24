@@ -1,6 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@ taglib uri="http://www.springframework.org/tags/form" prefix="sf" %>
 <%@ page trimDirectiveWhitespaces="true"%>
 <!DOCTYPE html>
 <html lang="ko">
@@ -12,11 +11,6 @@
 <link href="css/sticky-footer-navbar.css" rel="stylesheet">
 <script src="js/jquery-1.11.2.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
-<style type="text/css">
-.error {
-	color : red;
-}
-</style>
 </head>
 <body>
 
@@ -29,8 +23,6 @@
 		<div class="container">
 
 			<h1 class="page-header">Insert Korean Click Load Time</h1>
-			
-			<!-- 
 			<form class="form-horizontal" role="form" action="insertKc.sk" method="post">
 				<div class="input-group">
 					<label for="date">Date</label>
@@ -51,16 +43,7 @@
 				<div class="input-group">		
 					<button type="submit" class="btn btn-primary" style="margin-top:10px">Insert</button>
 				</div>
-			</form>
-			 -->
-			
-			<sf:form action="insertKc.sk" commandName="kcmodel" method="post">
-			
-				<sf:input path="date" />
-
-			</sf:form>
-			
-				
+			</form>	
 		</div>
 		
 	</div>
