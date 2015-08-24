@@ -18,6 +18,22 @@
 		
 	</select>
 	
+	<insert id="insertAuto" parameterType="PortalModel">
+	    INSERT INTO TB_PORTAL_AUTO
+	    (	TEST_RESULT
+	    )
+	    values
+	    (	#{autoTest}
+	    )
+	</insert>	
+	
+	<select id="getAuto" parameterType="PortalModel" resultType="PortalModel">
+	    SELECT
+	    		TEST_RESULT as autoTest
+	    
+	    FROM	TB_PORTAL_AUTO
+	</select>	
+	
 	<!--
 		포털별 webPageTest 측정값 Insert
 	 -->
