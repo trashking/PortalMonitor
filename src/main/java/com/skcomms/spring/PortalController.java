@@ -1,7 +1,10 @@
 package com.skcomms.spring;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,12 +16,14 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.skcomms.portal.PortalService;
@@ -70,11 +75,12 @@ public class PortalController {
 		Elements tableHeaderEles = tableElements.select("thead tr th");
 		Elements tableRowEles = tableElements.select(":not(thead) tr");
 		Elements baseElements = doc.select("#header_data p");
+		Elements dateElements = doc.select("#header_data p span");
 		
 		String checkUrl = url;
 		
-		// 기존 테스트 결과도 입력 시점으로 들어가서 임시방편
-		String checkDate = "20" + url.substring(34, 40);
+		String tempDate = dateElements.text().trim().replaceAll(" ", "").substring(0, 8).replaceAll("[/]", "");
+		String checkDate = "20" + tempDate.substring(4) + tempDate.substring(0, 4);
 		
 		// portalCode 는 테스트할 포털의 고유 코드를 나타낸다.
 		// 0 : NATE, 1 : DAUM, 2 : NAVER, 3 : ETC 
@@ -105,7 +111,6 @@ public class PortalController {
 		// 테스트 기준 분류
 		// 지역, 브라우저, 연결품질 
 		String checkBase = baseElements.text().trim().replaceAll(" ", "");
-		
 		String checkBaseLocation = checkBase.substring(checkBase.indexOf(":"), checkBase.indexOf("-")).replaceAll(":", "");
 		String checkBaseBrowser = checkBase.substring(checkBase.indexOf("-"), checkBase.lastIndexOf("-")).replaceAll("-", "");
 		String checkBaseConnection = checkBase.substring(checkBase.lastIndexOf("-")).replaceAll("-", "").replaceAll("[0-9//:]", "");
@@ -389,6 +394,7 @@ public class PortalController {
 			mav.addObject("sDate", sDate);
 			mav.addObject("eDate", eDate);
 			mav.addObject("pCode", portalCode);
+			
 		}
 		
 		return mav;
@@ -423,4 +429,129 @@ public class PortalController {
 		
 		return resultList;
 	}
+	
+	@RequestMapping(value = "/getAuto.sk", method = RequestMethod.GET)
+	public ModelAndView getAuto(HttpServletRequest request,
+			HttpServletResponse response,
+			PortalModel portalmodel
+			) throws Exception {
+		ModelAndView mav = new ModelAndView("portal/auto_result");
+	
+		List<PortalModel> stats = portalService.getAuto(portalmodel);
+		// 화면에 결과 담기
+		mav.addObject("stats", stats);
+
+		return mav;
+	}
+	
+	@RequestMapping(value = "/getNateTest")
+	public String testNate() throws Exception {
+		// label date
+		Calendar cal = Calendar.getInstance();
+		int year = cal.get(Calendar.YEAR);
+		int mon = cal.get(Calendar.MONTH) + 1;
+		int day = cal.get(Calendar.DAY_OF_MONTH);
+		
+		final String uri = "http://www.webpagetest.org/runtest.php?k={key}&url={url}&label={label}&location={location}&runs={runs}&fvonly=1&video=1&f=json&notify={notify}";
+		
+		RestTemplate restTemplate = new RestTemplate();
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("key", "A.1450c8f935dedf93f1ab164c57d2348d");
+		params.put("url", "www.nate.com");
+		params.put("label", ("PM" + year + mon + day));
+		params.put("location", "Dulles_IE10.Cable");
+		params.put("runs", "9");
+		params.put("notify", "ysd1213@sk.com");
+		
+		String result = restTemplate.getForObject(uri, String.class, params);
+		
+		PortalModel autotest = new PortalModel();
+		autotest.setAutoTest(result);
+		try {
+			portalService.insertAutoNate(autotest);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return result;
+	}
+	
+	@RequestMapping(value = "/getDaumTest")
+	public String testDaum() throws Exception {
+		// label date
+		Calendar cal = Calendar.getInstance();
+		int year = cal.get(Calendar.YEAR);		
+		int mon = cal.get(Calendar.MONTH) + 1;
+		int day = cal.get(Calendar.DAY_OF_MONTH);
+		
+		final String uri = "http://www.webpagetest.org/runtest.php?k={key}&url={url}&label={label}&location={location}&runs={runs}&fvonly=1&video=1&f=json&notify={notify}";
+		
+		RestTemplate restTemplate = new RestTemplate();
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("key", "A.1450c8f935dedf93f1ab164c57d2348d");
+		params.put("url", "www.daum.net");
+		params.put("label", ("PM" + year + mon + day));
+		params.put("location", "Dulles_IE10.Cable");
+		params.put("runs", "9");
+		params.put("notify", "ysd1213@sk.com");
+		
+		String result = restTemplate.getForObject(uri, String.class, params);
+		
+		PortalModel autotest = new PortalModel();
+		autotest.setAutoTest(result);
+		
+		try {
+			portalService.insertAutoDaum(autotest);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	@RequestMapping(value = "/getNaverTest")
+	public String testNaver() throws Exception {
+		// label date
+		Calendar cal = Calendar.getInstance();
+		int year = cal.get(Calendar.YEAR);
+		int mon = cal.get(Calendar.MONTH) + 1;
+		int day = cal.get(Calendar.DAY_OF_MONTH);
+		
+		final String uri = "http://www.webpagetest.org/runtest.php?k={key}&url={url}&label={label}&location={location}&runs={runs}&fvonly=1&video=1&f=json&notify={notify}";
+		
+		RestTemplate restTemplate = new RestTemplate();
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("key", "A.1450c8f935dedf93f1ab164c57d2348d");
+		params.put("url", "www.naver.com");
+		params.put("label", ("PM" + year + mon + day));
+		params.put("location", "Dulles_IE10.Cable");
+		params.put("runs", "9");
+		params.put("notify", "ysd1213@sk.com");
+		
+		String result = restTemplate.getForObject(uri, String.class, params);
+		
+		PortalModel autotest = new PortalModel();
+		autotest.setAutoTest(result);
+		
+		try {
+			portalService.insertAutoNaver(autotest);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
+	@Scheduled(cron="0 0 14 * * *")	
+	public void test() {
+		try {
+			testNate();
+			testDaum();
+			testNaver();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 }
