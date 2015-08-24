@@ -37,6 +37,20 @@ public class PortalServiceImpl implements PortalService {
 	public void insertWebPageTest(PortalModel portalmodel) {
 		portalMapper.insertWebPageTest(portalmodel);
 	}
+
+	public void insertAutoNate(PortalModel portalmodel) {
+		portalMapper.insertAuto(portalmodel);
+	}
+	public void insertAutoDaum(PortalModel portalmodel) {
+		portalMapper.insertAuto(portalmodel);
+	}
+	public void insertAutoNaver(PortalModel portalmodel) {
+		portalMapper.insertAuto(portalmodel);
+	}
+	public List<PortalModel> getAuto(PortalModel portalmodel) {
+		return portalMapper.getAuto(portalmodel);
+	}
+	
 	
 	/*
 	 * 포털별 webPageTest 측정값 Delete
@@ -85,4 +99,5 @@ public class PortalServiceImpl implements PortalService {
 		
 		return portalMapper.getSummaryByDate(params);
 	}
+
 }
