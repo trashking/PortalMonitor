@@ -61,7 +61,8 @@
 								<c:out value="${summary.checkDate }" />
 							</td>
 							<td>
-								<c:out value="${summary.loadTime }" />
+								<c:set var="loadTime" value="${summary.loadTime }"/>
+								<c:out value="${fn:substring(loadTime, 0, 4) }" />
 							</td>
 						</tr>
 							
@@ -77,4 +78,4 @@
 	<%@ include file="../include/footer.jsp" %>
 
 </body>
-</html>	
+</html>
