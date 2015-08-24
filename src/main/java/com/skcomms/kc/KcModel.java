@@ -1,21 +1,16 @@
 package com.skcomms.kc;
 
-import javax.validation.constraints.Size;
-
-import org.hibernate.validator.constraints.NotBlank;
-
 public class KcModel {
-	
-	@NotBlank(message="올바른 날짜 형식이 아닙니다.")
-	@Size(min=6, message="올바른 날짜 형식이 아닙니다. ex)20YYMMDD")
 	private String checkDate;
 	private String portalCode;
 	private String portalName;
 	private double loadTime;
 	
 	/* 사용자추가 시작 (Table에 없음) */
+	
 	private String sDate;
 	private String eDate;
+	
 	/* 사용자추가 끝 */
 	
 	public String getCheckDate() {
