@@ -27,8 +27,17 @@ public class PortalModel {
 	private String checkBaseConnection;
 	private String modifiedStatResource;
 	
+	private String autoTest;
+	
 	/* 사용자추가 시작 (Table에 없음) */
 	
+	public String getAutoTest() {
+		return autoTest;
+	}
+	public void setAutoTest(String autoTest) {
+		this.autoTest = autoTest;
+	}
+
 	private String loadEventType;
 	private String sDate;
 	private String eDate;
