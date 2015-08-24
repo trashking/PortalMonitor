@@ -6,14 +6,12 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,15 +57,13 @@ public class KcController {
 	}
 	
 	@RequestMapping(value = "/insertKc.sk", method = RequestMethod.POST)
-	public ModelAndView insertKc(
-			HttpServletRequest request,
+	public ModelAndView insertKc(HttpServletRequest request,
 			Model model,
-			@RequestParam(value = "date") @Valid String date,
+			@RequestParam(value = "date") String date,
 			@RequestParam(value = "nate") double nate,
 			@RequestParam(value = "daum") double daum,
 			@RequestParam(value = "naver") double naver,
-			@RequestParam Map<String, String> params,
-			BindingResult bindingResult) throws Exception {
+			@RequestParam Map<String, String> params) throws Exception {
 		
 		ModelAndView mav = new ModelAndView("kc/kc_insert");
 		
@@ -75,10 +71,6 @@ public class KcController {
 		String portalCode = "";
 		String portalName = "";
 		double loadTime;
-		
-		if (bindingResult.hasErrors()) {
-			return mav;
-		}
 		
 		for ( String key : params.keySet() ) {
 			KcModel kcLoadTime = new KcModel();
